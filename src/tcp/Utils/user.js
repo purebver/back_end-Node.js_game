@@ -72,7 +72,9 @@ const determineWinner = () => {
   const winner = db.prepare(query).get(...queryParams);
 
   if (winner) {
-    console.log(`우승자: ${winner.id}, 주소: ${winner.address}`);
+    console.log(
+      `우승자: ${winner.id}, 주소: ${winner.address}, 클릭 횟수: ${winner.click_count}`
+    );
   } else {
     console.log("우승자가 없습니다.");
   }

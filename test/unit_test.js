@@ -123,3 +123,5 @@ console.log("===getUserFromSession() 테스트 끝===");
 
 console.log("====== 유닛 테스트 완료 ======");
 // ====== 유닛 테스트 완료 ======
+
+process.exit();
