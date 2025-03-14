@@ -83,6 +83,12 @@ const login = (req, res) => {
       "INSERT INTO sessions (sessionId, userId, createdAt) VALUES (?, ?, ?)"
     ).run(sessionId, id, createdAt);
 
+    // 세션 확인
+    const checkSession = db
+      .prepare("SELECT * FROM sessions WHERE userId = ?")
+      .get(id);
+    console.log("DB에서 가져온 세션:", checkSession);
+
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end(JSON.stringify({ sessionId }));
   });

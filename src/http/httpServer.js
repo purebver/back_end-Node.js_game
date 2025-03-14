@@ -14,4 +14,8 @@ const server = http.createServer((req, res) => {
 
 const PORT = 3000;
 
-server.listen(PORT, () => console.log(`HTTP 서버 ${PORT}포트에 실행`));
+const start = () => {
+  server.listen(PORT, () => console.log(`HTTP 서버 ${PORT}포트에 실행`));
+};
+
+module.exports = { start };

@@ -1,6 +1,7 @@
 const db = require("../../db/database.js");
 const {
   disqualifyUser,
+  checkInactiveUsers,
   disqualifiedUsers,
   activeUsers,
   lastClickTime,
@@ -8,11 +9,11 @@ const {
 
 const clicks = new Map();
 
-const clickHandler = (socket, userId) => {
+const clickHandler = (userId) => {
   // 이미 실격된 사용자
   if (disqualifiedUsers.has(userId)) {
     console.log(`이미 실격된 유저: ${userId}`);
-    socket.write("Disqualified user");
+    process.send({ type: "Disqualified", userId });
     return;
   }
 
@@ -24,7 +25,7 @@ const clickHandler = (socket, userId) => {
     activeUsers.add(userId);
     lastClickTime.set(userId, now);
     clicks.set(userId, []);
-    socket.write("Join!");
+    process.send({ type: "Join", userId });
     return;
   }
 
@@ -38,9 +39,9 @@ const clickHandler = (socket, userId) => {
     const minTime = timestamp[timestamp.length - 4];
     const maxTime = timestamp[timestamp.length - 1];
 
-    if (maxTime - minTime <= 1000) {
+    if (maxTime - minTime <= 1000000) {
       disqualifyUser(userId, "1초 내 최대 클릭수를 오버.");
-      socket.write("Disqualified: Maximum clicks exceeded in 1 second");
+      process.send({ type: "Disqualified", userId });
       return;
     }
   }
@@ -51,7 +52,11 @@ const clickHandler = (socket, userId) => {
     now
   );
 
-  socket.write("Click received");
+  console.log("clicks----------", clicks);
+
+  process.send({ type: "Click", userId });
 };
+
+setInterval(checkInactiveUsers, 1000);
 
 module.exports = clickHandler;

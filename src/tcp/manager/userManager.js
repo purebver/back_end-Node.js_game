@@ -4,8 +4,16 @@ const disqualifiedUsers = new Set();
 const activeUsers = new Set();
 const lastClickTime = new Map();
 
+// 현재 저장된 세션을 출력하는 함수 확인용
+const printAllSessions = () => {
+  const sessions = db.prepare("SELECT * FROM sessions").all();
+  console.log("현재 DB에 저장된 세션 목록:");
+  console.table(sessions);
+};
+
 // 세션 확인
 const getUserFromSession = (sessionId) => {
+  // printAllSessions();
   const session = db
     .prepare("SELECT userId FROM sessions WHERE sessionId = ?")
     .get(sessionId);
@@ -42,22 +50,31 @@ const checkInactiveUsers = () => {
 
 // 우승자 판별
 const determineWinner = () => {
-  // 클릭 개수 내림차순-마지막클릭 내림차순 으로 우승자 판별 + 유저 주소
-  const winner = db
-    .prepare(
-      `SELECT A.user_id AS id, COUNT(*) AS click_count, MAX(A.timestamp) AS last_click, B.address
-    FROM clicks A JOIN users B ON A.user_id = B.id
+  // 쿼리문
+  let queryParams = [];
+  let query = `
+  SELECT A.user_id AS id, COUNT(*) AS click_count, MAX(A.timestamp) AS last_click, B.address
+  FROM clicks A 
+  JOIN users B ON A.user_id = B.id
+`;
+  if (disqualifiedUsers.size > 0) {
+    const disqualify = [...disqualifiedUsers].map(() => "?").join(",");
+    query += ` WHERE A.user_id NOT IN (${disqualify})`;
+    queryParams = [...disqualifiedUsers];
+  }
+  query += `
     GROUP BY A.user_id
     ORDER BY click_count DESC, last_click ASC
     LIMIT 1;
-  `
-    )
-    .get();
+  `;
+
+  // 클릭 개수 내림차순-마지막클릭 오름차순 으로 우승자 판별 + 유저 주소
+  const winner = db.prepare(query).get(...queryParams);
 
   if (winner) {
     console.log(`우승자: ${winner.id}, 주소: ${winner.address}`);
   } else {
-    console.log("데이터가 없습니다.");
+    console.log("우승자가 없습니다.");
   }
 };
 
