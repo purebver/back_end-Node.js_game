@@ -13,7 +13,7 @@ const clickHandler = (userId) => {
   // 이미 실격된 사용자
   if (disqualifiedUsers.has(userId)) {
     console.log(`이미 실격된 유저: ${userId}`);
-    process.send({ type: "Disqualified", userId });
+    if (process.send) process.send({ type: "Disqualified", userId });
     return;
   }
 
@@ -25,7 +25,7 @@ const clickHandler = (userId) => {
     activeUsers.add(userId);
     lastClickTime.set(userId, now);
     clicks.set(userId, []);
-    process.send({ type: "Join", userId });
+    if (process.send) process.send({ type: "Join", userId });
     return;
   }
 
@@ -41,7 +41,7 @@ const clickHandler = (userId) => {
 
     if (maxTime - minTime <= 1000000) {
       disqualifyUser(userId, "1초 내 최대 클릭수를 오버.");
-      process.send({ type: "Disqualified", userId });
+      if (process.send) process.send({ type: "Disqualified", userId });
       return;
     }
   }
@@ -52,9 +52,7 @@ const clickHandler = (userId) => {
     now
   );
 
-  console.log("clicks----------", clicks);
-
-  process.send({ type: "Click", userId });
+  if (process.send) process.send({ type: "Click", userId });
 };
 
 setInterval(checkInactiveUsers, 1000);
