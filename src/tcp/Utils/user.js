@@ -17,7 +17,7 @@ const getUserFromSession = (sessionId) => {
   const session = db
     .prepare("SELECT userId FROM sessions WHERE sessionId = ?")
     .get(sessionId);
-  return session || null;
+  return session;
 };
 
 // 유저 실격 처리

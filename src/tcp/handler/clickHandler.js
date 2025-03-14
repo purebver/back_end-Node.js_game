@@ -5,7 +5,7 @@ const {
   disqualifiedUsers,
   activeUsers,
   lastClickTime,
-} = require("../manager/userManager.js");
+} = require("../Utils/user.js");
 
 const clicks = new Map();
 

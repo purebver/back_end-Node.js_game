@@ -6,7 +6,7 @@ const {
   determineWinner,
   getUserFromSession,
   disqualifiedUsers,
-} = require("./manager/userManager.js");
+} = require("./Utils/user.js");
 
 const numCPUs = os.cpus().length;
 const PORT = 3001;
