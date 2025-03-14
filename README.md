@@ -99,10 +99,14 @@
 - unit_test.js:
   - 개별 함수에 대한 유닛 테스트
   - 통신 없이 checkInactiveUsers(), clickHandler(), determineWinner(), getUserFromSession() 테스트
-  ***
-  ***
-  ## e2e 테스트 실행 방법(현재 상태 1, 2 되어있음)
-  1. tcpServer.js의 21~28줄 주석 해제
-  2. tcpServer.js의 30~37줄 주석 처리
-  3. src/app.js 실행
-  4. src/app.js 실행 후 3초 안에 test/e2e_test.js 실행
+
+---
+
+---
+
+## e2e 테스트 실행 방법(현재 상태 1, 2 되어있음)
+
+1. tcpServer.js의 21~28줄 주석 해제
+2. tcpServer.js의 30~37줄 주석 처리
+3. src/app.js 실행
+4. src/app.js 실행 후 3초 안에 test/e2e_test.js 실행
