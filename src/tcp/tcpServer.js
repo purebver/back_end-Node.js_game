@@ -2,16 +2,14 @@ const net = require("net");
 const cluster = require("cluster");
 const os = require("os");
 const clickHandler = require("./handler/clickHandler.js");
-const {
-  determineWinner,
-  getUserFromSession,
-  disqualifiedUsers,
-} = require("./Utils/user.js");
+const { determineWinner, disqualifiedUsers } = require("./Utils/user.js");
+const onData = require("./events/onData.js");
+const onClose = require("./events/onClose.js");
+const onEnd = require("./events/onEnd.js");
+const onError = require("./events/onError.js");
 
 const numCPUs = os.cpus().length;
 const PORT = 3001;
-let currentWorkerIndex = 0; // 워커 인덱스
-const userWorkerMap = new Map(); // 유저, 워커 매핑
 const userSockets = new Map(); // 소켓 정보 저장
 
 let eventStartTime = 0;
@@ -43,78 +41,13 @@ const start = () => {
     scheduleEvent();
 
     const server = net.createServer((socket) => {
-      socket.on("data", (data) => {
-        const message = data.toString().trim();
-        const [command, sessionId] = message.split(" ");
-
-        // 클릭 이벤트를 워커에게 분배
-        if (command === "CLICK") {
-          const now = Date.now();
-          if (now < eventStartTime) {
-            console.log("event not started");
-            socket.write("event not started");
-            return;
-          }
-          if (now >= eventEndTime) {
-            console.log("event end");
-            socket.write("event end");
-            return;
-          }
-
-          const session = getUserFromSession(sessionId);
-
-          console.log("sessionId:", sessionId);
-          console.log("session:", session);
-
-          // 로그인 안한 사용자 처리
-          if (!session) {
-            socket.write("Invalid sessionId");
-            return;
-          }
-
-          const userId = session.userId;
-
-          // 소켓 저장
-          userSockets.set(userId, socket);
-
-          // 이미 실격된 유저일 경우
-          if (disqualifiedUsers.has(userId)) {
-            socket.write("Disqualified");
-            return;
-          }
-
-          let workerId = userWorkerMap.get(userId);
-
-          if (!workerId) {
-            const workerIds = Object.keys(cluster.workers);
-            if (workerIds.length > 0) {
-              workerId = workerIds[currentWorkerIndex];
-              currentWorkerIndex = (currentWorkerIndex + 1) % workerIds.length;
-              userWorkerMap.set(userId, workerId);
-            }
-          }
-
-          const selectedWorker = cluster.workers[workerId];
-
-          if (selectedWorker) {
-            selectedWorker.send({
-              type: "click",
-              userId,
-              socketId: socket.remoteAddress,
-            });
-          } else {
-            console.error(`Error: Worker ${workerId} not found`);
-          }
-        }
-      });
-
-      socket.on("close", () => {
-        for (const [userId, sock] of userSockets.entries()) {
-          if (sock === socket) {
-            userSockets.delete(userId);
-          }
-        }
-      });
+      socket.on(
+        "data",
+        onData(socket, eventStartTime, eventEndTime, userSockets)
+      );
+      socket.on("end", onEnd(socket));
+      socket.on("error", onError(socket));
+      socket.on("close", onClose(socket, userSockets));
     });
 
     server.listen(PORT, () => console.log(`TCP Server running ${PORT}`));
